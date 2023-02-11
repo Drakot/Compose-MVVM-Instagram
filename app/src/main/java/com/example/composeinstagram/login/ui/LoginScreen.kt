@@ -1,8 +1,7 @@
-package com.example.composeinstagram
+package com.example.composeinstagram.login.ui
 
 import android.app.Activity
-import android.preference.PreferenceActivity
-import android.util.Patterns
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,11 +10,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.TextFieldDefaults.textFieldColors
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,18 +26,29 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.startActivity
+import com.example.composeinstagram.R
 
 @Preview
 @Composable
-fun LoginScreen() {
+fun LoginScreen(loginViewModel: LoginViewModel) {
     Box(
         Modifier
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        Header(Modifier.align(Alignment.TopEnd))
-        Body(Modifier.align(Alignment.Center))
-        Footer(Modifier.align(Alignment.BottomCenter))
+        if (loginViewModel.isLoading.value) {
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                CircularProgressIndicator( Modifier
+                    .align(Alignment.Center))
+            }
+        } else {
+            Header(Modifier.align(Alignment.TopEnd))
+            Body(Modifier.align(Alignment.Center), loginViewModel)
+            Footer(Modifier.align(Alignment.BottomCenter))
+        }
     }
 
 }
@@ -72,26 +81,21 @@ fun Footer(modifier: Modifier) {
 }
 
 @Composable
-fun Body(modifier: Modifier) {
-    var email by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
-    var isLoginEnabled by rememberSaveable { mutableStateOf(false) }
+fun Body(modifier: Modifier, loginViewModel: LoginViewModel) {
     Column(modifier = modifier) {
-        ImageLogo(Modifier.align(Alignment.CenterHorizontally))
+        ImageLogo(Modifier.align(Alignment.CenterHorizontally), loginViewModel)
         Spacer(modifier = Modifier.size(16.dp))
-        Email(email) {
-            email = it
-            isLoginEnabled = enableLogin(email, password)
+        Email(loginViewModel.email.value) {
+            loginViewModel.onLoginChange(it, loginViewModel.password.value)
         }
         Spacer(modifier = Modifier.size(4.dp))
-        Password(password) {
-            password = it
-            isLoginEnabled = enableLogin(email, password)
+        Password(loginViewModel.password.value) {
+            loginViewModel.onLoginChange(loginViewModel.email.value, it)
         }
         Spacer(modifier = Modifier.size(8.dp))
         ForgotPassword(Modifier.align(Alignment.End))
         Spacer(modifier = Modifier.size(16.dp))
-        LoginButton(isLoginEnabled)
+        LoginButton(loginViewModel.isLoginEnabled.value, loginViewModel)
         Spacer(modifier = Modifier.size(16.dp))
         LoginDivider()
         Spacer(modifier = Modifier.size(16.dp))
@@ -146,10 +150,10 @@ fun LoginDivider() {
 }
 
 @Composable
-fun LoginButton(loginEnabled: Boolean) {
+fun LoginButton(loginEnabled: Boolean, loginViewModel: LoginViewModel) {
     Button(
         modifier = Modifier.fillMaxWidth(), enabled = loginEnabled, onClick = {
-
+            loginViewModel.onLoginClick()
         },
         colors = ButtonDefaults.buttonColors(
             backgroundColor = Color(0xFF4EA8E9),
@@ -213,9 +217,6 @@ fun Password(password: String, onTextChange: (String) -> Unit) {
     )
 }
 
-fun enableLogin(email: String, password: String): Boolean =
-    Patterns.EMAIL_ADDRESS.matcher(email).matches() && password.length > 5
-
 
 @Composable
 fun Email(text: String, onTextChange: (String) -> Unit) {
@@ -235,8 +236,10 @@ fun Email(text: String, onTextChange: (String) -> Unit) {
 }
 
 @Composable
-fun ImageLogo(modifier: Modifier) {
-    Image(painterResource(id = R.drawable.insta), contentDescription = null, modifier = modifier)
+fun ImageLogo(modifier: Modifier, loginViewModel: LoginViewModel) {
+    Image(painterResource(id = R.drawable.insta), contentDescription = null, modifier = modifier.clickable {
+        loginViewModel.onImageClick()
+    })
 }
 
 @Composable
