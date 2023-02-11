@@ -8,9 +8,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.composeinstagram.login.domain.LoginUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel(val useCase: LoginUseCase = LoginUseCase()) : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(private val useCase: LoginUseCase) : ViewModel() {
+
     private val _email: MutableState<String> = mutableStateOf("")
     val email: State<String> = _email
 
@@ -51,7 +55,7 @@ class LoginViewModel(val useCase: LoginUseCase = LoginUseCase()) : ViewModel() {
     }
 
     fun onImageClick() {
-        onLoginChange("email@email.com","password123456")
+        onLoginChange("email@email.com", "password123456")
     }
 }
 
